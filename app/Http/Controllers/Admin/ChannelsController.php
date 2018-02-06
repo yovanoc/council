@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Channel;
+use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
 
 class ChannelsController extends Controller
@@ -14,7 +15,7 @@ class ChannelsController extends Controller
      */
     public function index()
     {
-        $channels = Channel::orderBy('name', 'asc')->with('threads')->get();
+        $channels = Channel::withArchived()->with('threads')->get();
 
         return view('admin.channels.index', compact('channels'));
     }
@@ -48,8 +49,9 @@ class ChannelsController extends Controller
     {
         $channel->update(
             request()->validate([
-                'name' => 'required|unique:channels',
+                'name' => ['required', Rule::unique('channels')->ignore($channel->id)],
                 'description' => 'required',
+                'archived' => 'required|boolean'
             ])
         );
 
